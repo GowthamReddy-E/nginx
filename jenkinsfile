@@ -10,6 +10,7 @@ pipeline {
         HOST_PORT = 8041
         CONTAINER_PORT = 80
         CONTAINER_NAME = 'c3'
+        SEARCH_VALUE = 'none' // Change this to the value you're searching for
     }
 
     stages {
@@ -44,29 +45,13 @@ pipeline {
         always {
             // Access console log text directly
             script {
-                // Get the current build
-                def build = currentBuild.rawBuild
-
-                // Get the console log
-                def consoleLog = build.getLog(1000) // Get the last 1000 lines of the console log
+                def targetLine = getLineContainingValueFromConsoleLog()
                 
-                // Initialize a variable to store the git version
-                def gitVersion = null
-                
-                // Loop through each line in the console log
-                for (String line : consoleLog) {
-                    // Check if the line contains "git version"
-                    if (line.contains("git version")) {
-                        gitVersion = line
-                        break // Exit the loop once "git version" is found
-                    }
-                }
-
-                // Print the git version line
-                if (gitVersion) {
-                    echo "Git Version: ${gitVersion}"
+                // Print the line containing the search value
+                if (targetLine != null) {
+                    echo "Line containing '${env.SEARCH_VALUE}': ${targetLine}"
                 } else {
-                    echo "Git version not found"
+                    echo "No line found containing '${env.SEARCH_VALUE}'"
                 }
                 
                 // Define a milestone name
@@ -80,4 +65,22 @@ pipeline {
             }
         }
     }
+}
+
+def getLineContainingValueFromConsoleLog() {
+    // Get the current build
+    def build = currentBuild.rawBuild
+
+    // Get the console log
+    def consoleLog = build.getLog().readLines()
+                
+    // Loop through each line in the console log
+    for (String line : consoleLog) {
+        // Convert both the line and the search value to lowercase for case-insensitive comparison
+        if (line.toLowerCase().contains(env.SEARCH_VALUE.toLowerCase())) {
+            return line
+        }
+    }
+    
+    return null
 }
