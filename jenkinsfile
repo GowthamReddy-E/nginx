@@ -17,7 +17,7 @@ pipeline {
             steps {
                 script {
                     try {
-                       // sh "${DOCKER_PATH} rm -f $(${DOCKER_PATH} ps -aq)"
+                        // sh "${DOCKER_PATH} rm -f $(${DOCKER_PATH} ps -aq)"
                         echo "Containers removed successfully"
                     } catch (Exception e) {
                         echo "No running containers to remove"
@@ -42,8 +42,26 @@ pipeline {
 
     post {
         always {
-            // You can add post-build actions here
-            echo "good mornung"
+            // Access console log text directly
+            script {
+               // Get the current build
+                def build = currentBuild.rawBuild
+                
+                // Get the console log
+                def consoleLog = build.getLog(1000) // Get the last 1000 lines of the console log
+                
+                // Print the console log
+                echo "Console Log: ${consoleLog}"
+                
+                // Define a milestone name
+                def milestoneName = "BuildCompleted"
+                
+                // Print a message indicating the milestone has been reached
+                echo "Milestone '${milestoneName}' reached!"
+                
+                // Mark a milestone for the current build
+                milestone ordinal: 1 // Change the ordinal to match the desired milestone
+            }
         }
     }
 }
