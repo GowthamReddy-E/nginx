@@ -43,6 +43,7 @@ pipeline {
     post {
         always {
             // You can add post-build actions here
+            echo "good mornung"
         }
     }
 }
