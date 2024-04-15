@@ -45,7 +45,7 @@ pipeline {
         always {
             // Access console log text directly
             script {
-                def targetLine = getLineContainingValueFromConsoleLog()
+                def targetLine = getLineContainingValueFromConsoleLog(env.SEARCH_VALUE.toLowerCase())
                 
                 // Print the line containing the search value
                 if (targetLine != null) {
@@ -67,7 +67,7 @@ pipeline {
     }
 }
 
-def getLineContainingValueFromConsoleLog() {
+def getLineContainingValueFromConsoleLog(name) {
     // Get the current build
     def build = currentBuild.rawBuild
 
@@ -77,7 +77,7 @@ def getLineContainingValueFromConsoleLog() {
     // Loop through each line in the console log
     for (String line : consoleLog) {
         // Convert both the line and the search value to lowercase for case-insensitive comparison
-        if (line.toLowerCase().contains(env.SEARCH_VALUE.toLowerCase())) {
+        if (line.toLowerCase().contains(name)) {
             return line
         }
     }
