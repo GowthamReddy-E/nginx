@@ -17,7 +17,7 @@ pipeline {
             steps {
                 script {
                     try {
-                       // sh "${DOCKER_PATH} rm -f $(${DOCKER_PATH} ps -aq)"
+                        sh "${DOCKER_PATH} rm -f $(${DOCKER_PATH} ps -aq)"
                         echo "Containers removed successfully"
                     } catch (Exception e) {
                         echo "No running containers to remove"
@@ -38,6 +38,22 @@ pipeline {
                 }
             }
         }
+    }
 
+    post {
+        always {
+            // Archive console log
+            archiveArtifacts 'console-log.txt'
+
+            // Print specific lines from the console log
+            script {
+                def consoleLog = readFile('console-log.txt')
+                def lines = consoleLog.readLines()
+                echo "First 10 lines of the console log:"
+                for (int i = 0; i < Math.min(lines.size(), 10); i++) {
+                    echo lines[i]
+                }
+            }
+        }
     }
 }
