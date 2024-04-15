@@ -1,3 +1,5 @@
+currentBuild.displayName = "nginx-with-host-info: #" + currentBuild.number
+
 pipeline {
     agent any
 
@@ -8,7 +10,7 @@ pipeline {
         HOST_PORT = 8041
         CONTAINER_PORT = 80
         CONTAINER_NAME = 'c3'
-        SEARCH_VALUES = ['git version', 'docker version'] // Change this to the values you're searching for
+        SEARCH_VALUE = 'abcdefgh' // Change this to the value you're searching for
     }
 
     stages {
@@ -41,15 +43,8 @@ pipeline {
 
     post {
         always {
-            // Access console log text directly
             script {
-                def targetLines = getLinesContainingValuesFromConsoleLog(env.SEARCH_VALUES)
-                
-                // Print the lines containing the search values
-                targetLines.each { line ->
-                    echo "Found: ${line}"
-                }
-                
+               def val= printLineContainingSearchValue(env.SEARCH_VALUE.toLowerCase())
                 // Define a milestone name
                 def milestoneName = "BuildCompleted"
                 
@@ -63,26 +58,28 @@ pipeline {
     }
 }
 
-def getLinesContainingValuesFromConsoleLog(values) {
-    // Get the current build
-    def build = currentBuild.rawBuild
+def printLineContainingSearchValue(searchValue) {
+    def targetLine = getLineContainingValueFromConsoleLog(searchValue)
+    if (targetLine != null) {
+        echo "Line containing '${searchValue}': ${targetLine}"
+        return targetLine
+    } else {
+        echo "No line found containing '${env.SEARCH_VALUE}'"
+        return null
+    }
+}
 
-    // Get the console log
+
+
+def getLineContainingValueFromConsoleLog(name) {
+    def build = currentBuild.rawBuild
     def consoleLog = build.getLog().readLines()
                 
-    // Initialize a list to store lines containing the search values
-    def lines = []
-
-    // Loop through each line in the console log
-    consoleLog.each { line ->
-        // Loop through each search value
-        values.each { value ->
-            // Convert both the line and the search value to lowercase for case-insensitive comparison
-            if (line.toLowerCase().contains(value.toLowerCase())) {
-                lines.add(line)
-            }
+    for (String line : consoleLog) {
+        if (line.toLowerCase().contains(name)) {
+            return line
         }
     }
     
-    return lines
+    return null
 }
