@@ -44,14 +44,30 @@ pipeline {
         always {
             // Access console log text directly
             script {
-               // Get the current build
+                // Get the current build
                 def build = currentBuild.rawBuild
-                
+
                 // Get the console log
                 def consoleLog = build.getLog(1000) // Get the last 1000 lines of the console log
                 
-                // Print the console log
-                echo "Console Log: ${consoleLog}"
+                // Initialize a variable to store the git version
+                def gitVersion = null
+                
+                // Loop through each line in the console log
+                for (String line : consoleLog) {
+                    // Check if the line contains "git version"
+                    if (line.contains("git version")) {
+                        gitVersion = line
+                        break // Exit the loop once "git version" is found
+                    }
+                }
+
+                // Print the git version line
+                if (gitVersion) {
+                    echo "Git Version: ${gitVersion}"
+                } else {
+                    echo "Git version not found"
+                }
                 
                 // Define a milestone name
                 def milestoneName = "BuildCompleted"
